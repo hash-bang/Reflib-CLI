@@ -1,0 +1,29 @@
+{
+  "name": "reflib-cli",
+  "version": "1.0.0",
+  "description": "Command line interface for Reflib",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hash-bang/Reflib-CLI.git"
+  },
+  "keywords": [
+    "cli",
+    "reflib"
+  ],
+  "author": "Matt Carter <m@ttcarter.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/hash-bang/Reflib-CLI/issues"
+  },
+  "homepage": "https://github.com/hash-bang/Reflib-CLI#readme",
+  "dependencies": {
+    "async-chainable": "^1.7.12",
+    "colors": "^1.1.2",
+    "commander": "^2.8.1",
+    "reflib": "^1.0.8"
+  }
+}
