@@ -10,6 +10,7 @@ program
 	.version(require('./package.json').version)
 	.usage('[file...]')
 	.option('-c, --count', 'Dont output refs, just output the count')
+	.option('-j, --json', 'Output valid JSON')
 	.option('-v, --verbose', 'Be verbose')
 	.option('--no-color', 'Force disable color')
 	.parse(process.argv);
@@ -47,6 +48,8 @@ async()
 	.then(function(next) {
 		if (program.count) {
 			console.log('Found', colors.cyan(this.refsCount), 'references');
+		} else if (program.json) {
+			console.log(JSON.stringify(this.refs, null, '\t'));
 		} else {
 			console.log(util.inspect(this.refs, {depth: null, colors: colors.enabled}));
 		}
