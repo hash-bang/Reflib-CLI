@@ -11,6 +11,7 @@ program
 	.usage('[file...]')
 	.option('-c, --count', 'Dont output refs, just output the count')
 	.option('-v, --verbose', 'Be verbose')
+	.option('--no-color', 'Force disable color')
 	.parse(process.argv);
 
 async()
@@ -47,7 +48,7 @@ async()
 		if (program.count) {
 			console.log('Found', colors.cyan(this.refsCount), 'references');
 		} else {
-			console.log(util.inspect(this.refs, {depth: null, colors: true}));
+			console.log(util.inspect(this.refs, {depth: null, colors: colors.enabled}));
 		}
 		next();
 	})
