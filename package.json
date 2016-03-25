@@ -1,6 +1,6 @@
 {
   "name": "reflib-cli",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Command line interface for Reflib",
   "main": "app.js",
   "bin": {
@@ -24,6 +24,6 @@
     "async-chainable": "^1.7.12",
     "colors": "^1.1.2",
     "commander": "^2.8.1",
-    "reflib": "^1.0.8"
+    "reflib": "latest"
   }
 }
