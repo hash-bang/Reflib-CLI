@@ -35,6 +35,7 @@ async()
 			.on('ref', function(ref) {
 				thisCount++;
 				if (program.count) {
+					if (program.verbose && ((self.refsCount % 100) == 0)) console.log('Found', colors.cyan(self.refsCount), 'references...');
 					self.refsCount++;
 				} else {
 					self.refs.push(ref);
