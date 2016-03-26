@@ -56,6 +56,7 @@ async()
 					if (program.verbose && ((self.refsCount % 100) == 0)) console.log('Found', colors.cyan(self.refsCount), 'references...');
 					self.refsCount++;
 				} else if (program.query.length) { // Apply querying
+					if (program.verbose && ((thisCount % 100) == 0)) console.log('Processed', colors.cyan(thisCount), 'references...');
 					if (program.query.every(function(q) {
 						return q(ref);
 					})) self.refs.push(ref);
