@@ -1,7 +1,9 @@
 #!/usr/bin/node
+var _ = require('lodash');
 var async = require('async-chainable');
 var colors = require('colors');
 var fs = require('fs');
+var hanson = require('hanson');
 var program = require('commander');
 var reflib = require('reflib');
 var util = require('util');
@@ -11,9 +13,25 @@ program
 	.usage('[file...]')
 	.option('-c, --count', 'Dont output refs, just output the count')
 	.option('-j, --json', 'Output valid JSON')
-	.option('-v, --verbose', 'Be verbose')
+	.option('-q, --query [expression...]', 'Query by HanSON expression (loose JSON parsing)', function(item, value) { value.push(item); return value; }, [])
+	.option('-v, --verbose', 'Be verbose (also prints a running total if -c is specified)')
 	.option('--no-color', 'Force disable color')
 	.parse(process.argv);
+
+
+// Argument parsing {{{
+try {
+	program.query = program.query.map(function(q) {
+		var json = hanson.parse(q);
+		if (program.verbose) console.log('Filtering with query', util.inspect(json, {depth: null, color: true}));
+		return _.matches(json);
+	});
+} catch (e) {
+	console.log('Cannot parse query expression: ' + e.toString());
+	process.exit(1);
+}
+// }}}
+
 
 async()
 	.set('refs', [])
@@ -37,6 +55,10 @@ async()
 				if (program.count) {
 					if (program.verbose && ((self.refsCount % 100) == 0)) console.log('Found', colors.cyan(self.refsCount), 'references...');
 					self.refsCount++;
+				} else if (program.query.length) { // Apply querying
+					if (program.query.every(function(q) {
+						return q(ref);
+					})) self.refs.push(ref);
 				} else {
 					self.refs.push(ref);
 				}
