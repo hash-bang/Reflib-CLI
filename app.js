@@ -1,6 +1,7 @@
 #!/usr/bin/node
 var _ = require('lodash');
 var async = require('async-chainable');
+var asyncFlush = require('async-chainable-flush');
 var colors = require('colors');
 var fs = require('fs');
 var hanson = require('hanson');
@@ -34,6 +35,7 @@ try {
 
 
 async()
+	.use(asyncFlush)
 	.set('refs', [])
 	.set('refsCount', 0)
 	.forEach(program.args, function(next, file) {
@@ -79,6 +81,7 @@ async()
 		}
 		next();
 	})
+	.flush()
 	.end(function(err) {
 		if (err) {
 			console.log(colors.red('ERROR'), err);
