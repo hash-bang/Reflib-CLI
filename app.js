@@ -15,6 +15,7 @@ program
 	.option('-c, --count', 'Dont output refs, just output the count')
 	.option('-j, --json', 'Output valid JSON')
 	.option('-q, --query [expression...]', 'Query by HanSON expression (loose JSON parsing)', function(item, value) { value.push(item); return value; }, [])
+	.option('-p, --progress', 'Show read progress')
 	.option('-v, --verbose', 'Be verbose (also prints a running total if -c is specified)')
 	.option('--no-color', 'Force disable color')
 	.parse(process.argv);
@@ -65,6 +66,9 @@ async()
 				} else {
 					self.refs.push(ref);
 				}
+			})
+			.on('progress', function(current, max) {
+				if (program.progress) console.log('Read', colors.cyan(current), '/', colors.cyan(max));
 			})
 			.on('end', function() {
 				if (program.verbose) console.log(colors.grey('Finished parsing', file, 'with', thisCount,'references'));
