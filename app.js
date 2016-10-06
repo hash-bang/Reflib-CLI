@@ -12,8 +12,10 @@ var util = require('util');
 program
 	.version(require('./package.json').version)
 	.usage('[file...]')
-	.option('-c, --count', 'Dont output refs, just output the count')
-	.option('-j, --json', 'Output valid JSON')
+	.option('-c, --count', 'Dont output refs, just output the count (sets `-o count`)')
+	.option('-j, --json', 'Output valid JSON (sets `-o json`)')
+	.option('-x, --xml', 'Output EndNote XML file (sets `-o endnotexml`)')
+	.option('-o, --output [mode]', 'Output file format (js, json, endnotexml, count)')
 	.option('-q, --query [expression...]', 'Query by HanSON expression (loose JSON parsing)', function(item, value) { value.push(item); return value; }, [])
 	.option('-p, --progress', 'Show read progress')
 	.option('-v, --verbose', 'Be verbose (also prints a running total if -c is specified)')
@@ -22,6 +24,22 @@ program
 
 
 // Argument parsing {{{
+if (program.count && program.json && program.xml) {
+	console.log('Only one output mode can be used');
+	process.exit(1);
+} else if (program.count) {
+	program.output = 'count';
+} else if (program.json) {
+	program.output = 'json';
+} else if (program.xml) {
+	program.output = 'endnotexml';
+} else if (!program.output) {
+	program.output = 'js';
+} else if (program.output && !_.includes(['count', 'js', 'json', 'endnotexml', 'xml'], program.output)) {
+	console.log('Invalid output mode');
+	process.exit(1);
+}
+
 try {
 	program.query = program.query.map(function(q) {
 		var json = hanson.parse(q);
@@ -75,16 +93,39 @@ async()
 				next();
 			});
 	})
+	// Output {{{
 	.then(function(next) {
-		if (program.count) {
-			console.log('Found', colors.cyan(this.refsCount), 'references');
-		} else if (program.json) {
-			console.log(JSON.stringify(this.refs, null, '\t'));
-		} else {
-			console.log(util.inspect(this.refs, {depth: null, colors: colors.enabled}));
+		switch(program.output) {
+			case 'count':
+				console.log('Found', colors.cyan(this.refsCount), 'references');
+				break;
+			case 'json':
+				console.log(JSON.stringify(this.refs, null, '\t'));
+				break;
+			case 'endnotexml':
+			case 'xml':
+				// Create a fake stream that redirects writes to STDOUT {{{
+				var outStream = new require('stream').Writable();
+				outStream._write = function(chunk, enc, next) {
+					process.stdout.write(chunk, enc, next);
+				};
+				// }}}
+
+				reflib.output({
+					stream: outStream,
+					format: 'endnotexml',
+					content: this.refs,
+				})
+					.on('end', next);
+
+				break;
+			case 'js':
+			default:
+				console.log(util.inspect(this.refs, {depth: null, colors: colors.enabled}));
 		}
-		next();
 	})
+	// }}}
+	// End {{{
 	.flush()
 	.end(function(err) {
 		if (err) {
@@ -93,3 +134,4 @@ async()
 		}
 		process.exit(0);
 	});
+	// }}}

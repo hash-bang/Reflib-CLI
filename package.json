@@ -21,7 +21,7 @@
   },
   "homepage": "https://github.com/hash-bang/Reflib-CLI#readme",
   "dependencies": {
-    "async-chainable": "^2.0.0",
+    "async-chainable": "^2.1.1",
     "async-chainable-flush": "^1.0.0",
     "colors": "^1.1.2",
     "commander": "^2.9.0",
