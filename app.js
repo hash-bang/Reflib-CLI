@@ -5,6 +5,7 @@ var asyncFlush = require('async-chainable-flush');
 var colors = require('colors');
 var fs = require('fs');
 var hanson = require('hanson');
+var progress = require('yapb');
 var program = require('commander');
 var reflib = require('reflib');
 var util = require('util');
@@ -17,9 +18,9 @@ program
 	.option('-x, --xml', 'Output EndNote XML file (sets `-o endnotexml`)')
 	.option('-o, --output [mode]', 'Output file format (js, json, endnotexml, count)')
 	.option('-q, --query [expression...]', 'Query by HanSON expression (loose JSON parsing)', function(item, value) { value.push(item); return value; }, [])
-	.option('-p, --progress', 'Show read progress')
 	.option('-v, --verbose', 'Be verbose (also prints a running total if -c is specified)')
 	.option('--no-color', 'Force disable color')
+	.option('--no-progress', 'Disable progress bars')
 	.parse(process.argv);
 
 
@@ -64,32 +65,31 @@ async()
 		});
 	})
 	.forEach(program.args, function(next, file) {
-		var self = this;
+		var task = this;
 		if (program.verbose) console.log(colors.grey('Processing file', file));
-		var thisCount = 0;
+		var progressBar = progress('Read {{#cyan}}{{current}}{{/cyan}} / {{#cyan}}{{max}}{{/cyan}} [{{bar}}] {{percent}}% - found {{#cyan}}{{found}}{{/cyan}} refs', {found: 0, current: 0, max: 100});
+
 		reflib.parseFile(file)
 			.on('error', function(err) {
 				return next(err);
 			})
 			.on('ref', function(ref) {
-				thisCount++;
-				if (program.count) {
-					if (program.verbose && ((self.refsCount % 100) == 0)) console.log('Found', colors.cyan(self.refsCount), 'references...');
-					self.refsCount++;
-				} else if (program.query.length) { // Apply querying
-					if (program.verbose && ((thisCount % 100) == 0)) console.log('Processed', colors.cyan(thisCount), 'references...');
+				task.refsCount++;
+				if (program.progress) progressBar.set({found: task.refsCount});
+				if (program.query.length) { // Apply querying
 					if (program.query.every(function(q) {
 						return q(ref);
-					})) self.refs.push(ref);
+					})) task.refs.push(ref);
 				} else {
-					self.refs.push(ref);
+					task.refs.push(ref);
 				}
 			})
 			.on('progress', function(current, max) {
-				if (program.progress) console.log('Read', colors.cyan(current), '/', colors.cyan(max));
+				if (program.progress) progressBar.update({current: current, max: max});
 			})
 			.on('end', function() {
-				if (program.verbose) console.log(colors.grey('Finished parsing', file, 'with', thisCount,'references'));
+				progressBar.remove();
+				if (program.verbose) console.log(colors.grey('Finished parsing', file, 'with', task.refsCount,'references'));
 				next();
 			});
 	})
