@@ -3,11 +3,13 @@ var _ = require('lodash');
 var async = require('async-chainable');
 var asyncFlush = require('async-chainable-flush');
 var colors = require('colors');
+var filesize = require('filesize');
 var fs = require('fs');
 var hanson = require('hanson');
 var progress = require('yapb');
 var program = require('commander');
 var reflib = require('reflib');
+var sraDedupe = require('sra-dedupe');
 var util = require('util');
 
 program
@@ -19,12 +21,14 @@ program
 	.option('-o, --output [mode]', 'Output file format (js, json, endnotexml, count)')
 	.option('-q, --query [expression...]', 'Query by HanSON expression (loose JSON parsing)', function(item, value) { value.push(item); return value; }, [])
 	.option('-v, --verbose', 'Be verbose (also prints a running total if -c is specified)')
+	.option('--dedupe [action]', 'Deduplicate the library via the sra-dedupe NPM module. Actions are \'remove\' (default), \'count\' or \'mark\' (to set the caption to "DUPE")')
 	.option('--no-color', 'Force disable color')
 	.option('--no-progress', 'Disable progress bars')
 	.parse(process.argv);
 
 
 // Argument parsing {{{
+// count,json,xml,output {{{
 if (program.count && program.json && program.xml) {
 	console.log('Only one output mode can be used');
 	process.exit(1);
@@ -40,7 +44,22 @@ if (program.count && program.json && program.xml) {
 	console.log('Invalid output mode');
 	process.exit(1);
 }
+// }}}
 
+// dedupe {{{
+if (program.dedupe && !_.includes(['count', 'remove', 'mark'], program.dedupe)) {
+	if (program.dedupe === true) { // Nothing specified, assume 'remove'
+		program.dedupe = 'remove';
+	} else {
+		console.log('Invalid dedupe operation');
+		process.exit(1);
+	}
+} else if (program.dedupe == 'count') { // if `--dedupe count` imply `-c` also
+	program.output = 'count';
+}
+// }}}
+
+// query {{{
 try {
 	program.query = program.query.map(function(q) {
 		var json = hanson.parse(q);
@@ -52,22 +71,44 @@ try {
 	process.exit(1);
 }
 // }}}
-
+// }}}
 
 async()
 	.use(asyncFlush)
 	.set('refs', [])
 	.set('refsCount', 0)
+	// Check all arguments / files exist {{{
 	.forEach(program.args, function(next, file) {
 		fs.exists(file, function(exists) {
 			if (!exists) return next('File not found: ' + file);
 			next();
 		});
 	})
+	// }}}
+	// Read in all libraries {{{
 	.forEach(program.args, function(next, file) {
 		var task = this;
 		if (program.verbose) console.log(colors.grey('Processing file', file));
-		var progressBar = progress('Read {{#cyan}}{{current}}{{/cyan}} / {{#cyan}}{{max}}{{/cyan}} [{{bar}}] {{percent}}% - found {{#cyan}}{{found}}{{/cyan}} refs', {found: 0, current: 0, max: 100});
+		var progressBar = progress(
+			'Read' +
+			' {{#cyan}}{{#filesize}}{{current}}{{/filesize}}{{/cyan}}' +
+			' /' +
+			' {{#cyan}}{{#filesize}}{{max}}{{/filesize}}{{/cyan}}' +
+			' [{{bar}}]' +
+			' {{percent}}%' +
+			' - found' +
+			' {{#cyan}}{{found}}{{/cyan}}' +
+			' refs'
+		, {
+			found: 0,
+			current: 0,
+			max: 100,
+			filesize: function() {
+				return function(text, render) {
+					return filesize(render(text));
+				};
+			},
+		});
 
 		reflib.parseFile(file)
 			.on('error', function(err) {
@@ -93,11 +134,48 @@ async()
 				next();
 			});
 	})
+	// }}}
+	// Perform operations {{{
+	.then('dupeCount', function(next) {
+		if (!program.dedupe) return next();
+		var task = this;
+		var dupeCount = 0;
+		if (program.verbose) console.log(colors.grey('Performing dedupe'));
+		var dedupe = sraDedupe();
+		var progressBar = progress('Processed {{#cyan}}{{current}}{{/cyan}} / {{#cyan}}{{max}}{{/cyan}} [{{bar}}] {{percent}}% - found {{#cyan}}{{found}}{{/cyan}} duplicates', {found: 0, current: 0, max: this.refs.length});
+
+		dedupe.compareAll(this.refs)
+			.on('dupe', function(ref1, ref2, result) {
+				if (program.verbose) console.log(colors.grey('Dupe', ref1.recNumber, ref2.recNumber, res.reason));
+
+				dupeCount++;
+				if (program.progress) progressBar.update({found: dupeCount});
+
+				if (program.dedupe == 'remove') {
+					ref2.DELETE = true;
+				} else if (program.dedupe == 'mark') {
+					ref2.caption = 'DUPE OF ' + ref1.recNumber;
+				}
+			})
+			.on('progress', function(current, max) {
+				if (program.progress) progressBar.update({current: current, max: max});
+			})
+			.on('error', next)
+			.on('end', function() {
+				if (program.progress) progressBar.remove();
+				if (program.dedupe == 'remove') task.refs = task.refs.filter(function(ref) { // Remove all refs marked as deleted
+					return ! ref.DELETE;
+				});
+				next(null, dupeCount);
+			});
+	})
+	// }}}
 	// Output {{{
 	.then(function(next) {
 		switch(program.output) {
 			case 'count':
 				console.log('Found', colors.cyan(this.refsCount), 'references');
+				if (program.dedupe == 'count') console.log('... of which', colors.cyan(this.dupeCount), 'are duplicates');
 				break;
 			case 'json':
 				console.log(JSON.stringify(this.refs, null, '\t'));
