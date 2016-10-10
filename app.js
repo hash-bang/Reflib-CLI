@@ -175,7 +175,7 @@ async()
 			.on('end', function() {
 				if (program.progress) progressBar.remove();
 				if (program.dedupe == 'remove') task.refs = task.refs.filter(function(ref) { // Remove all refs marked as deleted
-					return ! ref.DELETE;
+					return (! ref.DELETE);
 				});
 				next(null, dupeCount);
 			});
