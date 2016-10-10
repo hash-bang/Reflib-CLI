@@ -10,6 +10,7 @@ var progress = require('yapb');
 var program = require('commander');
 var reflib = require('reflib');
 var sraDedupe = require('sra-dedupe');
+var stream = require('stream');
 var util = require('util');
 
 program
@@ -19,6 +20,7 @@ program
 	.option('-j, --json', 'Output valid JSON (sets `-o json`)')
 	.option('-x, --xml', 'Output EndNote XML file (sets `-o endnotexml`)')
 	.option('-o, --output [mode]', 'Output file format (js, json, endnotexml, count)')
+	.option('-f, --output-file [path]', 'Output data into a file instead of STDOUT (sets -o to a mode matching the filetype if possible)')
 	.option('-q, --query [expression...]', 'Query by HanSON expression (loose JSON parsing)', function(item, value) { value.push(item); return value; }, [])
 	.option('-v, --verbose', 'Be verbose (also prints a running total if -c is specified)')
 	.option('--dedupe [action]', 'Deduplicate the library via the sra-dedupe NPM module. Actions are \'remove\' (default), \'count\' or \'mark\' (to set the caption to "DUPE")')
@@ -38,11 +40,20 @@ if (program.count && program.json && program.xml) {
 	program.output = 'json';
 } else if (program.xml) {
 	program.output = 'endnotexml';
-} else if (!program.output) {
-	program.output = 'js';
 } else if (program.output && !_.includes(['count', 'js', 'json', 'endnotexml', 'xml'], program.output)) {
 	console.log('Invalid output mode');
 	process.exit(1);
+} else if (program.outputFile && !program.output) {
+	if (program.verbose) console.log(colors.grey('Determining output format from file path "' + program.outputFile + '"'));
+	program.output = reflib.identify(program.outputFile);
+	if (!program.output) {
+		console.log('Unknown file output file. Specify using `-o <format>`');
+		process.exit(1);
+	} else {
+		if (program.verbose) console.log(colors.grey('Using output format "' + program.output + '"'));
+	}
+} else if (!program.output) {
+	program.output = 'js';
 }
 // }}}
 
@@ -172,23 +183,28 @@ async()
 	// }}}
 	// Output {{{
 	.then(function(next) {
+		var outStream;
+		if (program.outputFile) {
+			outStream = fs.createWriteStream(program.outputFile);
+		} else {
+			// Create a fake stream that redirects writes to STDOUT
+			outStream = stream.Writable();
+			outStream._write = function(chunk, enc, next) {
+				process.stdout.write(chunk, enc, next);
+			};
+		}
+
 		switch(program.output) {
 			case 'count':
 				console.log('Found', colors.cyan(this.refsCount), 'references');
 				if (program.dedupe == 'count') console.log('... of which', colors.cyan(this.dupeCount), 'are duplicates');
 				break;
 			case 'json':
-				console.log(JSON.stringify(this.refs, null, '\t'));
+				outStream.on('end', next);
+				outStream.end(JSON.stringify(this.refs, null, '\t'));
 				break;
 			case 'endnotexml':
 			case 'xml':
-				// Create a fake stream that redirects writes to STDOUT {{{
-				var outStream = new require('stream').Writable();
-				outStream._write = function(chunk, enc, next) {
-					process.stdout.write(chunk, enc, next);
-				};
-				// }}}
-
 				reflib.output({
 					stream: outStream,
 					format: 'endnotexml',
@@ -199,7 +215,8 @@ async()
 				break;
 			case 'js':
 			default:
-				console.log(util.inspect(this.refs, {depth: null, colors: colors.enabled}));
+				outStream.on('end', next);
+				outStream.end(util.inspect(this.refs, {depth: null, colors: colors.enabled}));
 		}
 	})
 	// }}}
