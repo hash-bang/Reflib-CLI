@@ -156,8 +156,8 @@ async()
 		var progressBar = progress('Processed {{#cyan}}{{current}}{{/cyan}} / {{#cyan}}{{max}}{{/cyan}} [{{bar}}] {{percent}}% - found {{#cyan}}{{found}}{{/cyan}} duplicates', {found: 0, current: 0, max: this.refs.length});
 
 		dedupe.compareAll(this.refs)
-			.on('dupe', function(ref1, ref2, result) {
-				if (program.verbose) console.log(colors.grey('Dupe', ref1.recNumber, ref2.recNumber, res.reason));
+			.on('dupe', function(ref1, ref2, res) {
+				// if (program.verbose) console.log(colors.grey('Dupe', ref1.recNumber, ref2.recNumber, res.reason));
 
 				dupeCount++;
 				if (program.progress) progressBar.update({found: dupeCount});
