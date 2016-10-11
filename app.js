@@ -19,7 +19,7 @@ program
 	.option('-c, --count', 'Dont output refs, just output the count (sets `-o count`)')
 	.option('-j, --json', 'Output valid JSON (sets `-o json`)')
 	.option('-x, --xml', 'Output EndNote XML file (sets `-o endnotexml`)')
-	.option('-o, --output [mode]', 'Output file format (js, json, endnotexml, count)')
+	.option('-o, --output [mode]', 'Output file format (js, json, endnotexml, null, count)')
 	.option('-f, --output-file [path]', 'Output data into a file instead of STDOUT (sets -o to a mode matching the filetype if possible)')
 	.option('-q, --query [expression...]', 'Query by HanSON expression (loose JSON parsing)', function(item, value) { value.push(item); return value; }, [])
 	.option('-v, --verbose', 'Be verbose (also prints a running total if -c is specified)')
@@ -40,7 +40,7 @@ if (program.count && program.json && program.xml) {
 	program.output = 'json';
 } else if (program.xml) {
 	program.output = 'endnotexml';
-} else if (program.output && !_.includes(['count', 'js', 'json', 'endnotexml', 'xml'], program.output)) {
+} else if (program.output && !_.includes(['count', 'null', 'js', 'json', 'endnotexml', 'xml'], program.output)) {
 	console.log('Invalid output mode');
 	process.exit(1);
 } else if (program.outputFile && !program.output) {
@@ -217,6 +217,10 @@ async()
 			default:
 				outStream.on('end', next);
 				outStream.end(util.inspect(this.refs, {depth: null, colors: colors.enabled}));
+				break;
+			case 'null':
+				outStream.on('end', next);
+				outStream.end();
 		}
 	})
 	// }}}
