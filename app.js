@@ -109,7 +109,8 @@ async()
 			' {{percent}}%' +
 			' - found' +
 			' {{#cyan}}{{found}}{{/cyan}}' +
-			' refs'
+			' refs' +
+			' (ETA: {{eta}})'
 		, {
 			found: 0,
 			current: 0,
@@ -153,7 +154,22 @@ async()
 		var dupeCount = 0;
 		if (program.verbose) console.log(colors.grey('Performing dedupe'));
 		var dedupe = sraDedupe();
-		var progressBar = progress('Processed {{#cyan}}{{current}}{{/cyan}} / {{#cyan}}{{max}}{{/cyan}} [{{bar}}] {{percent}}% - found {{#cyan}}{{found}}{{/cyan}} duplicates', {found: 0, current: 0, max: this.refs.length});
+		var progressBar = progress(
+			'Processed' +
+			' {{#cyan}}{{current}}{{/cyan}}' +
+			' /' +
+			' {{#cyan}}{{max}}{{/cyan}}' +
+			' [{{bar}}]' +
+			' {{percent}}%' +
+			' - found' +
+			' {{#cyan}}{{found}}{{/cyan}}' +
+			' dupes' +
+			' (ETA: {{eta}})',
+		{
+			found: 0,
+			current: 0,
+			max: this.refs.length,
+		});
 
 		dedupe.compareAll(this.refs)
 			.on('dupe', function(ref1, ref2, res) {
