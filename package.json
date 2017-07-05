@@ -1,6 +1,6 @@
 {
   "name": "reflib-cli",
-  "version": "1.2.7",
+  "version": "1.2.8",
   "description": "Command line interface for Reflib",
   "main": "app.js",
   "bin": {
@@ -24,13 +24,13 @@
     "async-chainable": "^2.3.2",
     "async-chainable-flush": "^1.0.0",
     "colors": "^1.1.2",
-    "commander": "^2.9.0",
+    "commander": "^2.11.0",
     "filesize": "^3.5.10",
     "hanson": "^1.2.0",
     "lodash": "^4.17.4",
     "progress": "^2.0.0",
-    "reflib": "^1.5.6",
-    "sra-dedupe": "^1.0.5",
+    "reflib": "^1.5.7",
+    "sra-dedupe": "^1.0.6",
     "yapb": "^1.0.6"
   }
 }
