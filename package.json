@@ -1,6 +1,6 @@
 {
   "name": "reflib-cli",
-  "version": "1.2.13",
+  "version": "1.2.14",
   "description": "Command line interface for Reflib",
   "main": "app.js",
   "bin": {
@@ -21,16 +21,16 @@
   },
   "homepage": "https://github.com/hash-bang/Reflib-CLI#readme",
   "dependencies": {
-    "async-chainable": "^2.3.2",
+    "async-chainable": "^2.4.0",
     "async-chainable-flush": "^1.0.0",
     "chalk": "^2.4.1",
-    "commander": "^2.15.1",
+    "commander": "^2.19.0",
     "filesize": "^3.6.1",
     "hanson": "^1.2.0",
-    "lodash": "^4.17.10",
+    "lodash": "^4.17.11",
     "progress": "^2.0.0",
-    "reflib": "^1.5.10",
-    "sra-dedupe": "^1.0.8",
+    "reflib": "^1.5.11",
+    "sra-dedupe": "^1.0.9",
     "yapb": "^1.0.6"
   }
 }
