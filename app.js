@@ -40,7 +40,7 @@ if (program.count && program.json && program.xml) {
 	program.output = 'json';
 } else if (program.xml) {
 	program.output = 'endnotexml';
-} else if (program.output && !_.includes(['count', 'null', 'js', 'json', 'endnotexml', 'ris', 'xml'], program.output)) {
+} else if (program.output && !_.includes(['count', 'null', 'js', 'json', 'csv', 'endnotexml', 'ris', 'tsv', 'xml'], program.output)) {
 	console.log('Invalid output mode');
 	process.exit(1);
 } else if (program.outputFile && !program.output) {
@@ -219,20 +219,14 @@ async()
 				outStream.on('end', next);
 				outStream.end(JSON.stringify(this.refs, null, '\t'));
 				break;
+			case 'csv':
 			case 'endnotexml':
+			case 'ris':
+			case 'tsv':
 			case 'xml':
 				reflib.output({
 					stream: outStream,
-					format: 'endnotexml',
-					content: this.refs,
-				})
-					.on('end', next);
-
-				break;
-			case 'ris':
-				reflib.output({
-					stream: outStream,
-					format: 'ris',
+					format: program.output,
 					content: this.refs,
 				})
 					.on('end', next);
