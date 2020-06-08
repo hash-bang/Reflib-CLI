@@ -1,6 +1,6 @@
 {
   "name": "reflib-cli",
-  "version": "1.2.18",
+  "version": "1.2.19",
   "description": "Command line interface for Reflib",
   "main": "app.js",
   "bin": {
@@ -29,8 +29,8 @@
     "hanson": "^1.2.0",
     "lodash": "^4.17.15",
     "progress": "^2.0.3",
-    "reflib": "^1.7.4",
-    "sra-dedupe": "^1.0.9",
+    "reflib": "^1.7.5",
+    "sra-dedupe": "^1.1.0",
     "yapb": "^1.0.6"
   }
 }
