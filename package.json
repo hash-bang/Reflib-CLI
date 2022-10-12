@@ -1,36 +1,52 @@
 {
-  "name": "reflib-cli",
-  "version": "1.2.19",
-  "description": "Command line interface for Reflib",
+  "name": "@iebh/reflib-cli",
+  "version": "2.0.0",
+  "description": "Command line interface for @IEBH/Reflib",
   "main": "app.js",
   "bin": {
     "reflib": "./app.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/hash-bang/Reflib-CLI.git"
+    "url": "git+https://github.com/IEBH/Reflib-CLI.git"
   },
   "keywords": [
-    "cli",
-    "reflib"
+    "reflib",
+    "references",
+    "citations",
+    "library",
+    "cli"
   ],
   "author": "Matt Carter <m@ttcarter.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/hash-bang/Reflib-CLI/issues"
+    "url": "https://github.com/IEBH/Reflib-CLI/issues"
   },
-  "homepage": "https://github.com/hash-bang/Reflib-CLI#readme",
+  "homepage": "https://github.com/IEBH/Reflib-CLI#readme",
+  "enginesStrict": true,
+  "engines": {
+    "node": "^12.20.0 || ^14.13.1 || >=16.0.0"
+  },
+  "type": "module",
+  "eslintConfig": {
+    "extends": "eslint:recommended",
+    "env": {
+      "es2021": true,
+      "node": true
+    },
+    "globals": {},
+    "parserOptions": {
+      "ecmaVersion": 13,
+      "sourceType": "module"
+    }
+  },
+  "devDependencies": {
+    "eslint": "^8.25.0"
+  },
   "dependencies": {
-    "async-chainable": "^2.6.1",
-    "async-chainable-flush": "^1.0.0",
-    "chalk": "^2.4.2",
-    "commander": "^4.0.0",
-    "filesize": "^6.0.0",
-    "hanson": "^1.2.0",
-    "lodash": "^4.17.15",
-    "progress": "^2.0.3",
-    "reflib": "^1.7.5",
-    "sra-dedupe": "^1.1.0",
-    "yapb": "^1.0.6"
+    "@iebh/reflib": "^2.0.5",
+    "chalk": "^5.1.2",
+    "cli-progress": "^3.11.2",
+    "commander": "^9.4.1"
   }
 }
