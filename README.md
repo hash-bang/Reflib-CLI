@@ -1,3 +1,8 @@
+**This library is now depreciated in favour of [@IEBH/RefLib-Cli](https://github.com/IEBH/RefLib-Cli)**
+
+---
+
+
 Reflib-CLI
 ==========
 Command line interface for [Reflib](https://github.com/hash-bang/Reflib-Node).
