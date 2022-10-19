@@ -38,8 +38,12 @@ Promise.resolve()
 		}
 
 		// Check format is valid
-		if (args.output && !reflib.formats[args.output])
-			throw new Error('Invalid output mode');
+		if (
+			args.output
+			&& !['json', 'inspect', 'count'].includes(args.output)
+			&& !reflib.formats[args.output]
+		)
+			throw new Error(`Invalid output mode "${args.output}"`);
 
 		if (args.outputFile && !args.output) {
 			if (args.verbose) console.log(chalk.grey('Determining output format from file path "' + args.outputFile + '"'));
@@ -86,6 +90,7 @@ Promise.resolve()
 	// }}}
 	// Perform operations {{{
 	.then(([...refs]) => {
+		refs = refs.flat();
 		switch (args.output) {
 			case 'inspect':
 				console.log(inspect(refs, {depth: null, colors: chalk.enabled}));
